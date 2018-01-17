@@ -13,34 +13,29 @@ parameters {
   real<lower=0> sigma_alpha;
   
   // Log-progression rates
-  vector[N_subjects] logbeta_raw;
-  real<lower=0> sigma_logbeta;
-  real mu_logbeta;
+  vector<lower=0>[N_subjects] beta;
+  real<lower=0> beta_shape;
+  real<lower=0> beta_rate;
   
   // Cutpoints
   ordered[K-1] c;
 }
 transformed parameters {
   vector[N_subjects] alpha = (alpha_raw - mean(alpha_raw)) * sigma_alpha;
-  vector[N_subjects] beta = exp(mu_logbeta + logbeta_raw * sigma_logbeta);
   vector[N] progression = beta[subject_index] .* (alpha[subject_index] + t);
 }
 
 model {
   // Priors
   sigma_alpha ~ normal(0, 1000); // SD of intercepts, in days
-  sigma_logbeta ~ normal(0, 1); // SD of slopes, in 1/days
+  beta_shape ~ gamma(4, 1);
+  beta_rate ~ exponential(.001);
   
-  mu_logbeta ~ normal(-4, 2);
-  // Mean intercept is zero to maintain identifiability with cutpoints
-  
-  // What are c's units? 1/beta, maybe?
-  c ~ normal(mean(c), 20);
+  c ~ normal(mean(c), 20); // What are c's units? 1/beta, maybe?
   
   
-  // "Raw"" distributions are standard Gaussian
-  alpha_raw ~ normal(0, 1);
-  logbeta_raw ~ normal(0, 1);
+  alpha_raw ~ normal(0, 1); // "Raw"" distributions are standard Gaussian
+  beta ~ gamma(beta_shape, beta_rate); // random slopes
   
   // Conditional Likelihood
   for (i in 1:N){

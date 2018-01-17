@@ -104,3 +104,22 @@ adverse = read_csv(
   )
 )
 
+demographics = read_csv(
+  "PRO-ACT/Archive/2016_01_04_ALL_FORMS_CSV/demographics.csv",
+  col_types = cols(
+    subject_id = col_integer(),
+    Demographics_Delta = col_integer(),
+    Age = col_double(),
+    Date_of_Birth = col_integer(),
+    Ethnicity = col_character(),
+    Race_Americ_Indian_Alaska_Native = col_character(),
+    Race_Asian = col_integer(),
+    Race_Black_African_American = col_integer(),
+    Race_Hawaiian_Pacific_Islander = col_character(),
+    Race_Unknown = col_integer(),
+    Race_Caucasian = col_integer(),
+    Race_Other = col_integer(),
+    Race_Other_Specify = col_character(),
+    Sex = col_character()
+  )
+)
