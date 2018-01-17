@@ -29,7 +29,10 @@ data = cbind(severity, select(frs, subject, elapsed))
 
 fit = brm(
   bf(
-    cbind("Swallowing", "Respiratory", "Walking") ~ elapsed + (elapsed | s | subject)
+    cbind("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing", 
+          "Turning", "Walking", "Climbing", "Respiratory") ~ 
+      elapsed + 
+      (elapsed | s | subject)
   ) + 
     set_rescor(FALSE), 
   family = cumulative(),
