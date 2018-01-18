@@ -40,3 +40,5 @@ training_data = data %>%
 
 validation_data = data %>% 
   anti_join(training_data, by = c("subject", "month"))
+
+saveRDS(validation_data, "validation_data.rds")

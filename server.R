@@ -1,12 +1,10 @@
-source("01-import.R")
-source("02-munge.R")
-
-
+library(tidyverse)
 graph_input = read_rds("graph_input.rds")
+validation_data = read_rds("validation_data.rds")
 
 id = sample(unique(validation_data$subject), 1)
 
-color_order = c(5, 7, 3, 6, 8)
+colors = c("#0072B2", "#CC79A7", "#009E73", "#D55E00", "#000000")
 
 one_symptom_timeline = function(subject, symptom){
   graph_input %>% 
@@ -21,8 +19,8 @@ one_symptom_timeline = function(subject, symptom){
     ) + 
     geom_area(position = "identity", alpha = 0.1) + 
     geom_line(size = 1, alpha = 0.5)  + 
-    colorblindr::scale_color_OkabeIto(order = color_order, use_black = TRUE) + 
-    colorblindr::scale_fill_OkabeIto(order = color_order, use_black = TRUE) + 
+    scale_color_manual(values = colors) + 
+    scale_fill_manual(values = colors) + 
     cowplot::theme_cowplot() +
     xlab("Years") +
     ylab("Probability") +
@@ -32,18 +30,10 @@ one_symptom_timeline = function(subject, symptom){
 
 
 
-# Define server logic required to generate and plot a random distribution
+# Define server logic required to generate and plot data
 shinyServer(function(input, output) {
-  
-  # Expression that generates a plot of the distribution. The expression
-  # is wrapped in a call to renderPlot to indicate that:
-  #
-  #  1) It is "reactive" and therefore should be automatically 
-  #     re-executed when inputs change
-  #  2) Its output type is a plot 
-  #
   output$distPlot <- renderPlot({
     one_symptom_timeline(input$subject_ID, input$symptom)
   })
-  output$Symptoms = renderText(paste("Subject", input$subject_ID, "Symptom", input$symptom))
+  output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", input$symptom))
 })
