@@ -25,7 +25,7 @@ responses = c("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing",
               "Turning", "Walking", "Climbing", "Respiratory")
 
 
-severity = floor(5 - frs[ , colnames(frs) %in% responses])
+severity = ceiling(5 - frs[ , colnames(frs) %in% responses])
 
 
 data = cbind(severity, select(frs, subject, elapsed)) %>% 
@@ -46,7 +46,10 @@ validation_data = data %>%
 
 fit = brm(
   bf(
-    cbind("Swallowing", "Respiratory", "Walking") ~ elapsed + (elapsed | s | subject)
+    cbind("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing", 
+          "Turning", "Walking", "Climbing", "Respiratory") ~ 
+      elapsed + 
+      (elapsed | s | subject)
   ) + 
     set_rescor(FALSE), 
   family = cumulative(),
@@ -63,6 +66,53 @@ saveRDS(fit, file = "fit.rds")
 
 fit
 
+linpred_validation = posterior_linpred(
+  fit, 
+  transform = TRUE, 
+  newdata = validation_data
+) %>% 
+  apply(3, colMeans)
+
+validation_predictions = as_data_frame(linpred_validation) %>% 
+  mutate(subject = validation_data$subject, month = validation_data$month) %>% 
+  gather("key", "value", -subject, -month) %>% 
+  mutate(
+    symptom = gsub("[[:digit:]]*", "", key),
+    severity = as.numeric(gsub("[[:alpha:]]*", "", key))
+  ) %>% 
+  group_by(subject, symptom, month) %>% 
+  summarize(predicted_severity = sum(value * severity))
+
+validation_predictions = validation_data %>% 
+  select(one_of("subject", symptom_names, "month")) %>% 
+  gather(symptom, observed_severity, -subject, -month) %>% 
+  inner_join(validation_predictions, by = c("subject", "month", "symptom"))
+
+
+validation_predictions %>% 
+  group_by(month) %>% 
+  summarize(rmse = sqrt(mean((observed_severity - predicted_severity)^2))) %>% 
+  mutate(horizon_month = month - 3) %>% 
+  plot(rmse ~ horizon_month, type = "l", data = .)
+
+symptom_names = names(fit$formula$forms)
+
+
+validation_predictions %>% 
+  group_by(subject, month) %>% 
+  summarize(
+    observed_severity = sum(observed_severity),
+    predicted_severity = sum(predicted_severity)
+  ) %>% 
+  ggplot(aes(x = 45-predicted_severity, y = 45-observed_severity, color = month)) + 
+  geom_point() +
+  coord_equal() +
+  viridis::scale_color_viridis() +
+  cowplot::theme_cowplot()
+
+
+
+stop()
 gap = 1/20 # units: years
 
 id = sample(validation_data$subject, 1)
@@ -77,7 +127,7 @@ start_time = if (is.numeric(id)) {
   start_time = 0
 }
 
-times = seq(start_time, max(data$elapsed), gap)
+times = seq(start_time, start_time + 2, gap)
 
 linpred_baseline = posterior_linpred(
   fit, transform = TRUE, 
@@ -86,7 +136,7 @@ linpred_baseline = posterior_linpred(
 )
 
 symptom_names = names(fit$formula$forms)
-symptom = 3
+symptom = 7
 
 
 linpred_symptom = linpred_baseline[,,grep(symptom_names[symptom], dimnames(linpred_baseline)[[3]])]
@@ -111,7 +161,7 @@ reshape2::melt(apply(linpred_symptom, 3, colMeans)) %>%
   cowplot::theme_cowplot() +
   xlab("Years") +
   ylab("Probability") +
-  xlim(c(0, max(validation_data$elapsed) - min(validation_data$elapsed))) + 
+  #xlim(c(0, max(validation_data$elapsed) - min(validation_data$elapsed))) + 
   ylim(c(0, 1.01)) + 
   coord_cartesian(expand = FALSE)
 
@@ -134,3 +184,6 @@ ggplot(
   cowplot::theme_cowplot()
 
 
+ranefs = ranef(fit, summary = FALSE)[[1]]
+fixefs = fixef(fit, summary = FALSE)
+fixefs = fixefs[ , grep("elapsed", colnames(fixefs))]
