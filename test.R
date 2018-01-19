@@ -152,18 +152,18 @@ expected_score = sapply(
 ) %>% 
   rowSums()
 
-reshape2::melt(apply(linpred_symptom, 3, colMeans)) %>% 
-  ggplot(aes(x = (Var1 - 1) * gap, y = value, color = Var2, fill = Var2)) +
-  geom_area(position = "identity", alpha = 0.1) + 
-  geom_line(size = 1, alpha = 0.5)  + 
-  colorblindr::scale_color_OkabeIto(order = color_order, use_black = TRUE) + 
-  colorblindr::scale_fill_OkabeIto(order = color_order, use_black = TRUE) + 
-  cowplot::theme_cowplot() +
-  xlab("Years") +
-  ylab("Probability") +
-  #xlim(c(0, max(validation_data$elapsed) - min(validation_data$elapsed))) + 
-  ylim(c(0, 1.01)) + 
-  coord_cartesian(expand = FALSE)
+# reshape2::melt(apply(linpred_symptom, 3, colMeans)) %>% 
+#   ggplot(aes(x = (Var1 - 1) * gap, y = value, color = Var2, fill = Var2)) +
+#   geom_area(position = "identity", alpha = 0.1) + 
+#   geom_line(size = 1, alpha = 0.5)  + 
+#   colorblindr::scale_color_OkabeIto(order = color_order, use_black = TRUE) + 
+#   colorblindr::scale_fill_OkabeIto(order = color_order, use_black = TRUE) + 
+#   cowplot::theme_cowplot() +
+#   xlab("Years") +
+#   ylab("Probability") +
+#   #xlim(c(0, max(validation_data$elapsed) - min(validation_data$elapsed))) + 
+#   ylim(c(0, 1.01)) + 
+#   coord_cartesian(expand = FALSE)
 
 
 
