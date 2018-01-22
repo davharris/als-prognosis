@@ -13,25 +13,23 @@ motor_symptoms = c("Handwriting", "Dressing", "Turning", "Walking", "Climbing")
 respiratory_symptoms = c("Respiratory")
 
 
-one_symptom_timeline = function(subject, symptom){
+one_symptom_timeline = function(subject, symptom, x){
   graph_input %>% 
     filter(subject == !!subject, symptom == !!symptom) %>% 
     ggplot(
       aes(
         x = t,
         y = value,
-        color = factor(severity),
-        fill = factor(severity)
+        fill = factor(5 - severity, levels = 4:0)
       )
     ) + 
-    geom_area(position = "identity", alpha = 0.1) + 
-    geom_line(size = 1, alpha = 0.5)  + 
-    scale_color_manual(values = colors) + 
-    scale_fill_manual(values = colors) + 
+    geom_area() + 
+    scale_fill_brewer(type = "seq", palette = "OrRd") + 
     xlab("Years") +
     ylab("Probability") +
     ylim(c(0, 1.01)) + 
-    coord_cartesian(expand = FALSE)
+    coord_cartesian(expand = FALSE) + 
+    geom_vline(xintercept = ifelse(is.null(x), 0, x))
 }
 
 
@@ -64,7 +62,7 @@ make_lines = function(subject, symptoms, title){
 # Define server logic required to generate and plot data
 shinyServer(function(input, output) {
   output$distPlot <- renderPlot({
-    one_symptom_timeline(input$subject_ID, input$symptom)
+    one_symptom_timeline(input$subject_ID, input$symptom, input$symptom_hover$x)
   })
   output$speeds = renderPlot({
     plot_speeds(input$subject_ID)
@@ -78,4 +76,5 @@ shinyServer(function(input, output) {
     )
   })
   output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", input$symptom))
+  output$x = renderText(input$symptom_hover$x)
 })
