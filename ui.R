@@ -30,8 +30,7 @@ shinyUI(pageWithSidebar(
                               c("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing", 
                                 "Turning", "Walking", "Climbing", "Respiratory")),
                   h3(textOutput("Symptoms")), 
-                  h3(verbatimTextOutput("x", placeholder = TRUE)),
-                  plotOutput("distPlot", hover = "symptom_hover")
+                  plotOutput("distPlot", hover = hoverOpts("symptom_hover", delay = 50))
                 )
     )
   )

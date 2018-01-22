@@ -61,8 +61,12 @@ make_lines = function(subject, symptoms, title){
 
 # Define server logic required to generate and plot data
 shinyServer(function(input, output) {
+  x = NULL
+  makeReactiveBinding("x")
+  observeEvent(input$symptom_hover$x, {x <<- input$symptom_hover$x})
+  
   output$distPlot <- renderPlot({
-    one_symptom_timeline(input$subject_ID, input$symptom, input$symptom_hover$x)
+    one_symptom_timeline(input$subject_ID, input$symptom, x)
   })
   output$speeds = renderPlot({
     plot_speeds(input$subject_ID)
@@ -76,5 +80,4 @@ shinyServer(function(input, output) {
     )
   })
   output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", input$symptom))
-  output$x = renderText(input$symptom_hover$x)
 })
