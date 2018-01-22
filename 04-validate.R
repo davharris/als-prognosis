@@ -1,6 +1,11 @@
+library(tidyverse)
+
+symptom_names = names(fit$family)
+
 if (!exists("fit")) {
   fit = readRDS("fit.rds")
 }
+validation_data = readRDS("validation_data.rds")
 
 linpred_validation = posterior_linpred(
   fit, 
@@ -56,3 +61,5 @@ full_validation_predictions %>%
 full_validation_predictions %>% 
   group_by(symptom) %>% 
   summarize(RMSE = signif(Metrics::rmse(observed_severity, predicted_severity), 1))
+
+
