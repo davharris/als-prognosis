@@ -2,7 +2,9 @@ library(tidyverse)
 library(cowplot)
 graph_input = read_rds("graph_input.rds")
 validation_data = read_rds("validation_data.rds")
-ranefs = read_rds("ranefs.rds")
+#ranefs = read_rds("ranefs.rds")
+
+descriptions = yaml::yaml.load_file("frs.yaml")
 
 id = sample(unique(validation_data$subject), 1)
 
@@ -17,9 +19,14 @@ respiratory_symptoms = c("Respiratory")
 
 one_symptom_timeline = function(subject, symptom, x){
   df = graph_input %>% 
-    filter(subject == !!subject, symptom == !!symptom) %>% 
-    mutate(Function = factor(5 - severity, levels = 4:0, labels = paste0(4:0, ": ", letters[5:1], "%"))) %>% 
-    mutate(Function = fct_rev(Function))
+    filter(subject == !!subject, symptom == !!symptom)
+  
+  df = df %>% 
+    mutate(Function = paste0(5 - severity, ": ", round(value * 100), "%")) %>% 
+    mutate(Function = gsub(" 0%", " <1%", Function)) %>% 
+    filter(near(t, x)) %>% 
+    select(severity, Function) %>% 
+    inner_join(df, by = c("severity"))
   
   df %>% 
     ggplot(
@@ -41,7 +48,8 @@ one_symptom_timeline = function(subject, symptom, x){
           legend.margin = margin(4,4,4,4),
           legend.justification = ifelse(x < 1, 0, 1)
     ) +
-    guides(fill=guide_legend(title=paste("Probable function\nafter", round(x, 1), "years"))) + 
+    xlim(c(0, 2)) +
+    guides(fill=guide_legend(title=paste("Probable scores\nafter", x * 12, "months"))) + 
     geom_vline(xintercept = ifelse(is.null(x), 0, x)) 
 }
 
@@ -90,7 +98,7 @@ make_lines = function(subject, symptoms, title){
 shinyServer(function(input, output) {
   x = 1
   makeReactiveBinding("x")
-  observeEvent(input$symptom_hover$x, {x <<- input$symptom_hover$x})
+  observeEvent(input$symptom_hover$x, {x <<- round(input$symptom_hover$x * 12) / 12})
   
   output$distPlot <- renderPlot(
     {
@@ -109,7 +117,16 @@ shinyServer(function(input, output) {
       ncol = 2
     )
   },
-  height = 750
+  height = 600
   )
   output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", input$symptom))
+  output$description = renderUI({
+    desc_symptom = ifelse(input$symptom == "Respiratory", "Dyspnea", input$symptom)
+    desc_symptom = grep(desc_symptom, names(descriptions), value = TRUE)
+    description = c(
+      paste0("<b>", desc_symptom, "</b>", ":"), 
+      rev(paste(4:0, descriptions[[desc_symptom]]))
+    )
+    HTML(paste(description, collapse="<br/>"))
+  })
 })

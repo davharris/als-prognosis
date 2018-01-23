@@ -1,6 +1,7 @@
 library(shiny)
+library(readr)
 
-subject_ids = c(649L, 2956L, 3085L, 5936L, 8480L, 13165L, 15511L, 18424L, 24428L, 24571L)
+subject_ids = read_csv("subject_ids.csv", col_types = cols(x = col_integer()))[[1]]
 
 # Define UI for application that plots random distributions 
 shinyUI(pageWithSidebar(
@@ -20,10 +21,7 @@ shinyUI(pageWithSidebar(
     tabsetPanel(type = "tabs",
                 tabPanel(
                   "Summary",
-                  plotOutput("lines", height = "800px"),
-                  br(),
-                  br(),
-                  plotOutput("speeds")
+                  plotOutput("lines", height = "600px")
                 ),
                 tabPanel(
                   "Symptoms", 
@@ -32,7 +30,8 @@ shinyUI(pageWithSidebar(
                               c("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing", 
                                 "Turning", "Walking", "Climbing", "Respiratory")),
                   h3(textOutput("Symptoms")), 
-                  plotOutput("distPlot", hover = hoverOpts("symptom_hover", delay = 50))
+                  plotOutput("distPlot", hover = hoverOpts("symptom_hover", delay = 50)),
+                  htmlOutput("description")
                 )
     ),
     width = 10

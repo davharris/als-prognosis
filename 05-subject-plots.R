@@ -5,23 +5,24 @@ library(brms)
 if (!exists("fit")) {
   fit = readRDS("fit.rds")
 }
-
+subject_ids = read_csv("subject_ids.csv", col_types = cols(x = col_integer())) %>% pull(x)
 
 # Slopes ------------------------------------------------------------------
 
 ranefs = ranef(fit)[[1]]
 ranefs = ranefs[ , , grep("elapsed", dimnames(ranefs)[[3]])]
 dimnames(ranefs)[[3]] = gsub("_elapsed", "", dimnames(ranefs)[[3]])
+ranefs = ranefs[as.character(subject_ids), , ]
 saveRDS(ranefs, "ranefs.rds")
 
 
 
 # Symptom probabilities ---------------------------------------------------
 
-times = seq(0, 2, length.out = 25)
+times = seq(0, 2, 1/12)
 
 subject_time = crossing(
-  subject = unique(validation_data$subject), 
+  subject = subject_ids, 
   t = times
 )
 
