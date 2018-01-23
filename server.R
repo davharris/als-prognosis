@@ -6,7 +6,9 @@ ranefs = read_rds("ranefs.rds")
 
 id = sample(unique(validation_data$subject), 1)
 
-colors = c("#0072B2", "#CC79A7", "#009E73", "#D55E00", "#000000")
+font_size = 18
+
+colors = c("#000000", "#0072B2", "#CC79A7", "#009E73", "#D55E00")
 
 bulbar_symptoms = c("Speech", "Salivation", "Swallowing")
 motor_symptoms = c("Handwriting", "Dressing", "Turning", "Walking", "Climbing")
@@ -14,22 +16,33 @@ respiratory_symptoms = c("Respiratory")
 
 
 one_symptom_timeline = function(subject, symptom, x){
-  graph_input %>% 
+  df = graph_input %>% 
     filter(subject == !!subject, symptom == !!symptom) %>% 
+    mutate(Function = factor(5 - severity, levels = 4:0, labels = paste0(4:0, ": ", letters[5:1], "%"))) %>% 
+    mutate(Function = fct_rev(Function))
+  
+  df %>% 
     ggplot(
       aes(
         x = t,
         y = value,
-        fill = factor(5 - severity, levels = 4:0)
+        fill = Function
       )
     ) + 
     geom_area() + 
-    scale_fill_brewer(type = "seq", palette = "OrRd") + 
+    scale_fill_brewer(type = "seq", palette = "OrRd", direction = -1) + 
     xlab("Years") +
     ylab("Probability") +
     ylim(c(0, 1.01)) + 
     coord_cartesian(expand = FALSE) + 
-    geom_vline(xintercept = ifelse(is.null(x), 0, x))
+    theme_cowplot(font_size = font_size) +
+    theme(legend.position = c(x / 2, .5), 
+          legend.background = element_rect(fill = "white"), 
+          legend.margin = margin(4,4,4,4),
+          legend.justification = ifelse(x < 1, 0, 1)
+    ) +
+    guides(fill=guide_legend(title=paste("Probable function\nafter", round(x, 1), "years"))) + 
+    geom_vline(xintercept = ifelse(is.null(x), 0, x)) 
 }
 
 
@@ -44,40 +57,59 @@ plot_speeds = function(subject) {
     geom_vline(xintercept = 0, color = alpha(1, .25)) + 
     ylab("") +
     xlab("Slower               Faster") +
-    ggtitle(paste("Relative decline rates for subject", subject))
+    ggtitle(paste("Relative decline rates for subject", subject)) +
+    theme_cowplot(font_size = font_size)
 }
 
 make_lines = function(subject, symptoms, title){
-  graph_input %>% 
-    filter(subject == !!subject, symptom %in% symptoms) %>% 
+  df = if (identical(symptoms, "all")) {
+    graph_input %>% 
+      mutate(symptom = "Total")
+  } else {
+    graph_input %>% 
+      filter(symptom %in% symptoms)
+  }
+  ymax = ifelse(identical(symptoms, "all"), 40, 4)
+  
+  df %>% 
+    filter(subject == !!subject) %>% 
     group_by(t, symptom) %>% 
-    summarize(prediction = sum((5-severity) * value)) %>% 
-    ggplot(aes(x = t, y = prediction, color = symptom)) +
-    geom_line() +
-    ylim(c(0, 4)) +
+    summarize(`expected function` = sum((5-severity) * value)) %>% 
+    ggplot(aes(x = t, y = `expected function`, color = symptom)) +
+    geom_line(size = 1) +
+    ylim(c(0, ymax)) +
     coord_cartesian(expand = FALSE) +
-    ggtitle(title)
+    ggtitle(title) +
+    theme(legend.position="bottom") + 
+    xlab("Time (years)") +
+    scale_color_manual(values = colors) +
+    theme_cowplot(font_size = font_size)
 }
 
 # Define server logic required to generate and plot data
 shinyServer(function(input, output) {
-  x = NULL
+  x = 1
   makeReactiveBinding("x")
   observeEvent(input$symptom_hover$x, {x <<- input$symptom_hover$x})
   
-  output$distPlot <- renderPlot({
-    one_symptom_timeline(input$subject_ID, input$symptom, x)
-  })
+  output$distPlot <- renderPlot(
+    {
+      one_symptom_timeline(input$subject_ID, input$symptom, x)
+    }
+  )
   output$speeds = renderPlot({
     plot_speeds(input$subject_ID)
   })
   output$lines = renderPlot({
     cowplot::plot_grid(
-      make_lines(input$subject_ID, bulbar_symptoms, title = "Bulbar (mouth/throat)"),
-      make_lines(input$subject_ID, motor_symptoms, title = "Motor"),
-      make_lines(input$subject_ID, respiratory_symptoms, title = "Respiratory"),
-      ncol = 3
+      make_lines(input$subject_ID, bulbar_symptoms, title = "Bulbar (mouth/throat) progression"),
+      make_lines(input$subject_ID, motor_symptoms, title = "Motor progression"),
+      make_lines(input$subject_ID, respiratory_symptoms, title = "Respiratory progression"),
+      make_lines(input$subject_ID, "all", title = "Total progression"),
+      ncol = 2
     )
-  })
+  },
+  height = 750
+  )
   output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", input$symptom))
 })
