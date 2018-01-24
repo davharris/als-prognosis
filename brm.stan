@@ -65,6 +65,11 @@ data {
   int<lower=1> K_Handwriting;  // number of population-level effects 
   matrix[N, K_Handwriting] X_Handwriting;  // population-level design matrix 
   real<lower=0> disc_Handwriting;  // discrimination parameters 
+  int Y_Cutting[N];  // response variable 
+  int<lower=2> ncat_Cutting;  // number of categories 
+  int<lower=1> K_Cutting;  // number of population-level effects 
+  matrix[N, K_Cutting] X_Cutting;  // population-level design matrix 
+  real<lower=0> disc_Cutting;  // discrimination parameters 
   int Y_Dressing[N];  // response variable 
   int<lower=2> ncat_Dressing;  // number of categories 
   int<lower=1> K_Dressing;  // number of population-level effects 
@@ -102,16 +107,18 @@ data {
   vector[N] Z_1_Swallowing_6; 
   vector[N] Z_1_Handwriting_7; 
   vector[N] Z_1_Handwriting_8; 
-  vector[N] Z_1_Dressing_9; 
-  vector[N] Z_1_Dressing_10; 
-  vector[N] Z_1_Turning_11; 
-  vector[N] Z_1_Turning_12; 
-  vector[N] Z_1_Walking_13; 
-  vector[N] Z_1_Walking_14; 
-  vector[N] Z_1_Climbing_15; 
-  vector[N] Z_1_Climbing_16; 
-  vector[N] Z_1_Respiratory_17; 
-  vector[N] Z_1_Respiratory_18; 
+  vector[N] Z_1_Cutting_9; 
+  vector[N] Z_1_Cutting_10; 
+  vector[N] Z_1_Dressing_11; 
+  vector[N] Z_1_Dressing_12; 
+  vector[N] Z_1_Turning_13; 
+  vector[N] Z_1_Turning_14; 
+  vector[N] Z_1_Walking_15; 
+  vector[N] Z_1_Walking_16; 
+  vector[N] Z_1_Climbing_17; 
+  vector[N] Z_1_Climbing_18; 
+  vector[N] Z_1_Respiratory_19; 
+  vector[N] Z_1_Respiratory_20; 
   int<lower=1> NC_1; 
   int prior_only;  // should the likelihood be ignored? 
 } 
@@ -128,6 +135,9 @@ transformed data {
   int Kc_Handwriting = K_Handwriting - 1; 
   matrix[N, K_Handwriting - 1] Xc_Handwriting;  // centered version of X_Handwriting 
   vector[K_Handwriting - 1] means_X_Handwriting;  // column means of X_Handwriting before centering 
+  int Kc_Cutting = K_Cutting - 1; 
+  matrix[N, K_Cutting - 1] Xc_Cutting;  // centered version of X_Cutting 
+  vector[K_Cutting - 1] means_X_Cutting;  // column means of X_Cutting before centering 
   int Kc_Dressing = K_Dressing - 1; 
   matrix[N, K_Dressing - 1] Xc_Dressing;  // centered version of X_Dressing 
   vector[K_Dressing - 1] means_X_Dressing;  // column means of X_Dressing before centering 
@@ -159,6 +169,10 @@ transformed data {
     means_X_Handwriting[i - 1] = mean(X_Handwriting[, i]); 
     Xc_Handwriting[, i - 1] = X_Handwriting[, i] - means_X_Handwriting[i - 1]; 
   } 
+  for (i in 2:K_Cutting) { 
+    means_X_Cutting[i - 1] = mean(X_Cutting[, i]); 
+    Xc_Cutting[, i - 1] = X_Cutting[, i] - means_X_Cutting[i - 1]; 
+  } 
   for (i in 2:K_Dressing) { 
     means_X_Dressing[i - 1] = mean(X_Dressing[, i]); 
     Xc_Dressing[, i - 1] = X_Dressing[, i] - means_X_Dressing[i - 1]; 
@@ -189,6 +203,8 @@ parameters {
   ordered[ncat_Swallowing-1] temp_Swallowing_Intercept;  // temporary thresholds 
   vector[Kc_Handwriting] b_Handwriting;  // population-level effects 
   ordered[ncat_Handwriting-1] temp_Handwriting_Intercept;  // temporary thresholds 
+  vector[Kc_Cutting] b_Cutting;  // population-level effects 
+  ordered[ncat_Cutting-1] temp_Cutting_Intercept;  // temporary thresholds 
   vector[Kc_Dressing] b_Dressing;  // population-level effects 
   ordered[ncat_Dressing-1] temp_Dressing_Intercept;  // temporary thresholds 
   vector[Kc_Turning] b_Turning;  // population-level effects 
@@ -215,22 +231,25 @@ transformed parameters {
   vector[N_1] r_1_Swallowing_6 = r_1[, 6]; 
   vector[N_1] r_1_Handwriting_7 = r_1[, 7]; 
   vector[N_1] r_1_Handwriting_8 = r_1[, 8]; 
-  vector[N_1] r_1_Dressing_9 = r_1[, 9]; 
-  vector[N_1] r_1_Dressing_10 = r_1[, 10]; 
-  vector[N_1] r_1_Turning_11 = r_1[, 11]; 
-  vector[N_1] r_1_Turning_12 = r_1[, 12]; 
-  vector[N_1] r_1_Walking_13 = r_1[, 13]; 
-  vector[N_1] r_1_Walking_14 = r_1[, 14]; 
-  vector[N_1] r_1_Climbing_15 = r_1[, 15]; 
-  vector[N_1] r_1_Climbing_16 = r_1[, 16]; 
-  vector[N_1] r_1_Respiratory_17 = r_1[, 17]; 
-  vector[N_1] r_1_Respiratory_18 = r_1[, 18]; 
+  vector[N_1] r_1_Cutting_9 = r_1[, 9]; 
+  vector[N_1] r_1_Cutting_10 = r_1[, 10]; 
+  vector[N_1] r_1_Dressing_11 = r_1[, 11]; 
+  vector[N_1] r_1_Dressing_12 = r_1[, 12]; 
+  vector[N_1] r_1_Turning_13 = r_1[, 13]; 
+  vector[N_1] r_1_Turning_14 = r_1[, 14]; 
+  vector[N_1] r_1_Walking_15 = r_1[, 15]; 
+  vector[N_1] r_1_Walking_16 = r_1[, 16]; 
+  vector[N_1] r_1_Climbing_17 = r_1[, 17]; 
+  vector[N_1] r_1_Climbing_18 = r_1[, 18]; 
+  vector[N_1] r_1_Respiratory_19 = r_1[, 19]; 
+  vector[N_1] r_1_Respiratory_20 = r_1[, 20]; 
 } 
 model { 
   vector[N] mu_Speech = Xc_Speech * b_Speech; 
   vector[N] mu_Salivation = Xc_Salivation * b_Salivation; 
   vector[N] mu_Swallowing = Xc_Swallowing * b_Swallowing; 
   vector[N] mu_Handwriting = Xc_Handwriting * b_Handwriting; 
+  vector[N] mu_Cutting = Xc_Cutting * b_Cutting; 
   vector[N] mu_Dressing = Xc_Dressing * b_Dressing; 
   vector[N] mu_Turning = Xc_Turning * b_Turning; 
   vector[N] mu_Walking = Xc_Walking * b_Walking; 
@@ -241,24 +260,26 @@ model {
     mu_Salivation[n] = mu_Salivation[n] + (r_1_Salivation_3[J_1[n]]) * Z_1_Salivation_3[n] + (r_1_Salivation_4[J_1[n]]) * Z_1_Salivation_4[n]; 
     mu_Swallowing[n] = mu_Swallowing[n] + (r_1_Swallowing_5[J_1[n]]) * Z_1_Swallowing_5[n] + (r_1_Swallowing_6[J_1[n]]) * Z_1_Swallowing_6[n]; 
     mu_Handwriting[n] = mu_Handwriting[n] + (r_1_Handwriting_7[J_1[n]]) * Z_1_Handwriting_7[n] + (r_1_Handwriting_8[J_1[n]]) * Z_1_Handwriting_8[n]; 
-    mu_Dressing[n] = mu_Dressing[n] + (r_1_Dressing_9[J_1[n]]) * Z_1_Dressing_9[n] + (r_1_Dressing_10[J_1[n]]) * Z_1_Dressing_10[n]; 
-    mu_Turning[n] = mu_Turning[n] + (r_1_Turning_11[J_1[n]]) * Z_1_Turning_11[n] + (r_1_Turning_12[J_1[n]]) * Z_1_Turning_12[n]; 
-    mu_Walking[n] = mu_Walking[n] + (r_1_Walking_13[J_1[n]]) * Z_1_Walking_13[n] + (r_1_Walking_14[J_1[n]]) * Z_1_Walking_14[n]; 
-    mu_Climbing[n] = mu_Climbing[n] + (r_1_Climbing_15[J_1[n]]) * Z_1_Climbing_15[n] + (r_1_Climbing_16[J_1[n]]) * Z_1_Climbing_16[n]; 
-    mu_Respiratory[n] = mu_Respiratory[n] + (r_1_Respiratory_17[J_1[n]]) * Z_1_Respiratory_17[n] + (r_1_Respiratory_18[J_1[n]]) * Z_1_Respiratory_18[n]; 
+    mu_Cutting[n] = mu_Cutting[n] + (r_1_Cutting_9[J_1[n]]) * Z_1_Cutting_9[n] + (r_1_Cutting_10[J_1[n]]) * Z_1_Cutting_10[n]; 
+    mu_Dressing[n] = mu_Dressing[n] + (r_1_Dressing_11[J_1[n]]) * Z_1_Dressing_11[n] + (r_1_Dressing_12[J_1[n]]) * Z_1_Dressing_12[n]; 
+    mu_Turning[n] = mu_Turning[n] + (r_1_Turning_13[J_1[n]]) * Z_1_Turning_13[n] + (r_1_Turning_14[J_1[n]]) * Z_1_Turning_14[n]; 
+    mu_Walking[n] = mu_Walking[n] + (r_1_Walking_15[J_1[n]]) * Z_1_Walking_15[n] + (r_1_Walking_16[J_1[n]]) * Z_1_Walking_16[n]; 
+    mu_Climbing[n] = mu_Climbing[n] + (r_1_Climbing_17[J_1[n]]) * Z_1_Climbing_17[n] + (r_1_Climbing_18[J_1[n]]) * Z_1_Climbing_18[n]; 
+    mu_Respiratory[n] = mu_Respiratory[n] + (r_1_Respiratory_19[J_1[n]]) * Z_1_Respiratory_19[n] + (r_1_Respiratory_20[J_1[n]]) * Z_1_Respiratory_20[n]; 
   } 
   // priors including all constants 
   target += student_t_lpdf(temp_Speech_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Salivation_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Swallowing_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Handwriting_Intercept | 3, 0, 10); 
+  target += student_t_lpdf(temp_Cutting_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Dressing_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Turning_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Walking_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Climbing_Intercept | 3, 0, 10); 
   target += student_t_lpdf(temp_Respiratory_Intercept | 3, 0, 10); 
   target += student_t_lpdf(sd_1 | 3, 0, 10)
-    - 18 * student_t_lccdf(0 | 3, 0, 10); 
+    - 20 * student_t_lccdf(0 | 3, 0, 10); 
   target += lkj_corr_cholesky_lpdf(L_1 | 1); 
   target += normal_lpdf(to_vector(z_1) | 0, 1); 
   // likelihood including all constants 
@@ -274,6 +295,9 @@ model {
     } 
     for (n in 1:N) { 
       target += ordered_logistic_lpmf(Y_Handwriting[n] | mu_Handwriting[n], temp_Handwriting_Intercept); 
+    } 
+    for (n in 1:N) { 
+      target += ordered_logistic_lpmf(Y_Cutting[n] | mu_Cutting[n], temp_Cutting_Intercept); 
     } 
     for (n in 1:N) { 
       target += ordered_logistic_lpmf(Y_Dressing[n] | mu_Dressing[n], temp_Dressing_Intercept); 
@@ -301,6 +325,8 @@ generated quantities {
   vector[ncat_Swallowing - 1] b_Swallowing_Intercept = temp_Swallowing_Intercept + dot_product(means_X_Swallowing, b_Swallowing); 
   // compute actual thresholds 
   vector[ncat_Handwriting - 1] b_Handwriting_Intercept = temp_Handwriting_Intercept + dot_product(means_X_Handwriting, b_Handwriting); 
+  // compute actual thresholds 
+  vector[ncat_Cutting - 1] b_Cutting_Intercept = temp_Cutting_Intercept + dot_product(means_X_Cutting, b_Cutting); 
   // compute actual thresholds 
   vector[ncat_Dressing - 1] b_Dressing_Intercept = temp_Dressing_Intercept + dot_product(means_X_Dressing, b_Dressing); 
   // compute actual thresholds 
@@ -467,4 +493,41 @@ generated quantities {
   cor_1[151] = Cor_1[15,18]; 
   cor_1[152] = Cor_1[16,18]; 
   cor_1[153] = Cor_1[17,18]; 
+  cor_1[154] = Cor_1[1,19]; 
+  cor_1[155] = Cor_1[2,19]; 
+  cor_1[156] = Cor_1[3,19]; 
+  cor_1[157] = Cor_1[4,19]; 
+  cor_1[158] = Cor_1[5,19]; 
+  cor_1[159] = Cor_1[6,19]; 
+  cor_1[160] = Cor_1[7,19]; 
+  cor_1[161] = Cor_1[8,19]; 
+  cor_1[162] = Cor_1[9,19]; 
+  cor_1[163] = Cor_1[10,19]; 
+  cor_1[164] = Cor_1[11,19]; 
+  cor_1[165] = Cor_1[12,19]; 
+  cor_1[166] = Cor_1[13,19]; 
+  cor_1[167] = Cor_1[14,19]; 
+  cor_1[168] = Cor_1[15,19]; 
+  cor_1[169] = Cor_1[16,19]; 
+  cor_1[170] = Cor_1[17,19]; 
+  cor_1[171] = Cor_1[18,19]; 
+  cor_1[172] = Cor_1[1,20]; 
+  cor_1[173] = Cor_1[2,20]; 
+  cor_1[174] = Cor_1[3,20]; 
+  cor_1[175] = Cor_1[4,20]; 
+  cor_1[176] = Cor_1[5,20]; 
+  cor_1[177] = Cor_1[6,20]; 
+  cor_1[178] = Cor_1[7,20]; 
+  cor_1[179] = Cor_1[8,20]; 
+  cor_1[180] = Cor_1[9,20]; 
+  cor_1[181] = Cor_1[10,20]; 
+  cor_1[182] = Cor_1[11,20]; 
+  cor_1[183] = Cor_1[12,20]; 
+  cor_1[184] = Cor_1[13,20]; 
+  cor_1[185] = Cor_1[14,20]; 
+  cor_1[186] = Cor_1[15,20]; 
+  cor_1[187] = Cor_1[16,20]; 
+  cor_1[188] = Cor_1[17,20]; 
+  cor_1[189] = Cor_1[18,20]; 
+  cor_1[190] = Cor_1[19,20]; 
 } 

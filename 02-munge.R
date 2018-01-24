@@ -6,20 +6,24 @@ patient_ids = readLines("PRO-ACT/Archive/ALS_Prize_slopes/slopes.train") %>%
 history = history %>% 
   distinct(subject_id, Onset_Delta)
 
+# Combine 5a and 5b into one question, then drop the originals
 frs = frs %>% 
   select(1:13) %>%
-  select(-starts_with("Q5")) %>% 
+  mutate(Q5_Cutting = ifelse(is.na(Q5a_Cutting_without_Gastrostomy), 
+                             Q5b_Cutting_with_Gastrostomy, 
+                             Q5a_Cutting_without_Gastrostomy)
+  ) %>% 
+  select(-Q5a_Cutting_without_Gastrostomy, -Q5b_Cutting_with_Gastrostomy) %>% 
   filter(subject_id %in% patient_ids) %>% 
   inner_join(distinct(history), by = "subject_id") %>% 
   na.omit() %>% 
   mutate(elapsed = (ALSFRS_Delta - Onset_Delta) / 365.24)
 
-
+frs = frs[ , sort(colnames(frs))]
 colnames(frs) = gsub("Q..?_", "", colnames(frs))
 colnames(frs) = gsub("_.*$", "", colnames(frs))
 
-responses = c("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing", 
-              "Turning", "Walking", "Climbing", "Respiratory")
+responses = colnames(frs)[4:13]
 
 
 severity = ceiling(5 - frs[ , colnames(frs) %in% responses])

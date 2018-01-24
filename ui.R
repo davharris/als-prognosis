@@ -21,15 +21,17 @@ shinyUI(pageWithSidebar(
     tabsetPanel(type = "tabs",
                 tabPanel(
                   "Summary",
+                  textOutput("instructions1"),
                   plotOutput("lines", height = "600px")
                 ),
                 tabPanel(
                   "Symptoms", 
                   selectInput("symptom", 
                               "Choose a symptom", 
-                              c("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing", 
+                              c("Speech", "Salivation", "Swallowing", "Handwriting", "Cutting", "Dressing", 
                                 "Turning", "Walking", "Climbing", "Respiratory")),
                   h3(textOutput("Symptoms")), 
+                  textOutput("instructions2"),
                   plotOutput("distPlot", hover = hoverOpts("symptom_hover", delay = 50)),
                   htmlOutput("description")
                 )

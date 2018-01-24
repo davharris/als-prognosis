@@ -1,10 +1,12 @@
 library(tidyverse)
-
-symptom_names = names(fit$family)
+source("01-import.R")
+source("02-munge.R")
+library(brms)
 
 if (!exists("fit")) {
   fit = readRDS("fit.rds")
 }
+symptom_names = names(fit$family)
 validation_data = readRDS("validation_data.rds")
 
 linpred_validation = posterior_linpred(
@@ -63,3 +65,37 @@ full_validation_predictions %>%
   summarize(RMSE = signif(Metrics::rmse(observed_severity, predicted_severity), 1))
 
 
+some_correlations = colMeans(posterior_samples(fit, "cor")) %>% 
+  enframe %>% 
+  separate(name, letters[1:6]) %>% 
+  filter(d == "elapsed", f == "elapsed") %>% 
+  select(c, e, value) %>% 
+  mutate(c = factor(c, levels = symptom_names), 
+         e = factor(e, levels = symptom_names))
+
+diagonal = data_frame(c = symptom_names, e = symptom_names, value = 1)
+all_correlations = some_correlations %>% 
+  rename(c = e, e = c) %>% 
+  rbind(some_correlations, diagonal)
+
+ggplot(all_correlations, aes(x = c, y = e, fill = value)) + 
+  geom_raster() +
+  viridis::scale_fill_viridis(option = "B") +
+  cowplot::theme_cowplot(16)
+
+
+training_data %>%
+  ungroup() %>% 
+  filter(subject %in% c(255656, 501995)) %>% 
+  select(1:10, month, subject) %>% 
+  gather(key, value, -month, -subject) %>% 
+  mutate(`Function\nscore` = forcats::fct_rev(factor(5 - value, levels = 0:4)),
+         subject = factor(subject, labels = c("Subject 1", "Subject 2"))) %>% 
+  ggplot(aes(x = month, y = key, fill = `Function\nscore`)) +
+  geom_raster() +
+  scale_fill_brewer(type = "seq", palette = "OrRd", direction = 1, drop = FALSE) +
+  facet_grid(~subject) +
+  scale_x_continuous(breaks = seq(0, 12, 3)) +
+  coord_cartesian(expand = FALSE) +
+  ylab("") +
+  xlab("Time")

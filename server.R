@@ -82,8 +82,8 @@ make_lines = function(subject, symptoms, title){
   df %>% 
     filter(subject == !!subject) %>% 
     group_by(t, symptom) %>% 
-    summarize(`expected function` = sum((5-severity) * value)) %>% 
-    ggplot(aes(x = t, y = `expected function`, color = symptom)) +
+    summarize(`expected score` = sum((5-severity) * value)) %>% 
+    ggplot(aes(x = t, y = `expected score`, color = symptom)) +
     geom_line(size = 1) +
     ylim(c(0, ymax)) +
     coord_cartesian(expand = FALSE) +
@@ -129,4 +129,6 @@ shinyServer(function(input, output) {
     )
     HTML(paste(description, collapse="<br/>"))
   })
+  output$instructions1 = renderText("This tab provides an overview of the subject's progression. Switch to the \"symptoms\" tab for more detail on individual symptoms.")
+  output$instructions2 = renderText("Move your mouse to a time in the future to see likely scores")
 })

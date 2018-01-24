@@ -3,7 +3,7 @@ set.seed(1)
 
 fit = brm(
   bf(
-    cbind("Speech", "Salivation", "Swallowing", "Handwriting", "Dressing", 
+    cbind("Speech", "Salivation", "Swallowing", "Handwriting", "Cutting", "Dressing", 
           "Turning", "Walking", "Climbing", "Respiratory") ~ 
       elapsed + 
       (elapsed | s | subject)
