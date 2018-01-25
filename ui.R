@@ -19,10 +19,11 @@ shinyUI(pageWithSidebar(
   mainPanel(
     
     tabsetPanel(type = "tabs",
+                id = "tabs",
                 tabPanel(
                   "Summary",
                   textOutput("instructions1"),
-                  plotOutput("all_symptoms", height = "600px")
+                  plotOutput("all_symptoms", height = "600px", click = "showTab")
                 ),
                 tabPanel(
                   "Symptoms", 
@@ -33,7 +34,8 @@ shinyUI(pageWithSidebar(
                   h3(textOutput("Symptoms")), 
                   textOutput("instructions2"),
                   plotOutput("distPlot", hover = hoverOpts("symptom_hover", delay = 50)),
-                  htmlOutput("description")
+                  htmlOutput("description"),
+                  textOutput("y")
                 )
     ),
     width = 10

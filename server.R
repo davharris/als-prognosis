@@ -14,9 +14,11 @@ colors = c("#000000", "#0072B2", "#CC79A7", "#009E73", "#D55E00")
 
 symptoms = colnames(validation_data[1:10])
 
-bulbar_symptoms = c("Speech", "Salivation", "Swallowing")
-motor_symptoms = c("Handwriting", "Cutting", "Dressing", "Turning", "Walking", "Climbing")
-respiratory_symptoms = c("Respiratory")
+bulbar_symptoms = sort(c("Speech", "Salivation", "Swallowing"), decreasing = TRUE)
+motor_symptoms = sort(c("Handwriting", "Cutting", "Dressing", "Turning", "Walking", "Climbing"), decreasing = TRUE)
+respiratory_symptoms = sort(c("Respiratory"), decreasing = TRUE)
+
+symptom_list = list(Bulbar = bulbar_symptoms, Motor = motor_symptoms, Respiratory = respiratory_symptoms)
 
 graph_input = graph_input %>% 
   mutate(
@@ -78,15 +80,42 @@ make_all = function(subject){
     facet_grid(symptom_type ~ ., scales = "free", shrink = TRUE, space = "free_y")
 }
 
+get_symptom = function(group, y){
+  out = symptom_list[[group]][round(y)]
+  if (is_null(out)) {
+    "Respiratory"
+  } else {
+    out
+  }
+}
+
 # Define server logic required to generate and plot data
 shinyServer(function(input, output) {
+  
+  observeEvent(input$showTab, {
+    symptom <<- get_symptom(input$showTab$panelvar1, input$showTab$y)
+    output$y <<- renderText(input$showTab$y)
+  })
+  observeEvent(input$symptom, {
+    print(input$symptom)
+    symptom <<- input$symptom
+  })
+  
+  observeEvent(input$showTab, {
+    showTab(inputId = "tabs", target = "Symptoms", select = TRUE)
+  })
+  
   x = 1
   makeReactiveBinding("x")
+  
+  symptom = "respiratory"
+  makeReactiveBinding("symptom")
+  
   observeEvent(input$symptom_hover$x, {x <<- round(input$symptom_hover$x * 12) / 12})
   
   output$distPlot <- renderPlot(
     {
-      one_symptom_timeline(input$subject_ID, input$symptom, x)
+      one_symptom_timeline(input$subject_ID, symptom, x)
     }
   )
   output$speeds = renderPlot({
@@ -97,9 +126,9 @@ shinyServer(function(input, output) {
   },
   height = 600
   )
-  output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", input$symptom))
+  output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", symptom))
   output$description = renderUI({
-    desc_symptom = ifelse(input$symptom == "Respiratory", "Dyspnea", input$symptom)
+    desc_symptom = ifelse(symptom == "Respiratory", "Dyspnea", symptom)
     desc_symptom = grep(desc_symptom, names(descriptions), value = TRUE)
     description = c(
       paste0("<b>", desc_symptom, "</b>", ":"), 
