@@ -77,6 +77,7 @@ make_all = function(subject){
     ylab("") +
     scale_fill_distiller(palette = "OrRd", limits = c(0, 4)) +
     theme_cowplot(font_size = font_size) +
+    # geom_text(aes(label = format(round(`expected score`, 1), nsmall = 1))) + 
     facet_grid(symptom_type ~ ., scales = "free", shrink = TRUE, space = "free_y")
 }
 
@@ -90,14 +91,14 @@ get_symptom = function(group, y){
 }
 
 # Define server logic required to generate and plot data
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   
   observeEvent(input$showTab, {
     symptom <<- get_symptom(input$showTab$panelvar1, input$showTab$y)
+    updateSelectInput(session, "symptom", selected = symptom)
     output$y <<- renderText(input$showTab$y)
   })
   observeEvent(input$symptom, {
-    print(input$symptom)
     symptom <<- input$symptom
   })
   
@@ -126,7 +127,7 @@ shinyServer(function(input, output) {
   },
   height = 600
   )
-  output$Symptoms = renderText(paste0("Subject ", input$subject_ID, ": ", symptom))
+  output$h3 = renderText(paste0("Subject ", input$subject_ID, ": ", symptom))
   output$description = renderUI({
     desc_symptom = ifelse(symptom == "Respiratory", "Dyspnea", symptom)
     desc_symptom = grep(desc_symptom, names(descriptions), value = TRUE)
