@@ -22,7 +22,7 @@ shinyUI(pageWithSidebar(
                 tabPanel(
                   "Summary",
                   textOutput("instructions1"),
-                  plotOutput("lines", height = "600px")
+                  plotOutput("all_symptoms", height = "600px")
                 ),
                 tabPanel(
                   "Symptoms", 

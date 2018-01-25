@@ -12,9 +12,19 @@ font_size = 18
 
 colors = c("#000000", "#0072B2", "#CC79A7", "#009E73", "#D55E00")
 
+symptoms = colnames(validation_data[1:10])
+
 bulbar_symptoms = c("Speech", "Salivation", "Swallowing")
-motor_symptoms = c("Handwriting", "Dressing", "Turning", "Walking", "Climbing")
+motor_symptoms = c("Handwriting", "Cutting", "Dressing", "Turning", "Walking", "Climbing")
 respiratory_symptoms = c("Respiratory")
+
+graph_input = graph_input %>% 
+  mutate(
+    symptom_type = factor(
+      symptom %in% bulbar_symptoms + 2 * (symptom %in% motor_symptoms), 
+      labels = c("Resp.", "Bulbar", "Motor")
+    )
+  )
 
 
 one_symptom_timeline = function(subject, symptom, x){
@@ -53,45 +63,19 @@ one_symptom_timeline = function(subject, symptom, x){
     geom_vline(xintercept = ifelse(is.null(x), 0, x)) 
 }
 
-
-plot_speeds = function(subject) {
-  as.data.frame(t(ranefs[subject, , ])) %>% 
-    rownames_to_column("symptom") %>% 
-    ggplot(aes(x = Estimate, y = symptom)) +
-    geom_point() +
-    geom_errorbarh(aes(xmin = Estimate - Est.Error, xmax = Estimate + Est.Error),
-                   height = .25) +
-    xlim(range(ranefs[ , c("2.5%ile", "97.5%ile"), ])) +
-    geom_vline(xintercept = 0, color = alpha(1, .25)) + 
-    ylab("") +
-    xlab("Slower               Faster") +
-    ggtitle(paste("Relative decline rates for subject", subject)) +
-    theme_cowplot(font_size = font_size)
-}
-
-make_lines = function(subject, symptoms, title){
-  df = if (identical(symptoms, "all")) {
-    graph_input %>% 
-      mutate(symptom = "Total")
-  } else {
-    graph_input %>% 
-      filter(symptom %in% symptoms)
-  }
-  ymax = ifelse(identical(symptoms, "all"), 40, 4)
-  
-  df %>% 
+make_all = function(subject){
+  graph_input %>% 
     filter(subject == !!subject) %>% 
-    group_by(t, symptom) %>% 
+    group_by(t, symptom, symptom_type) %>% 
     summarize(`expected score` = sum((5-severity) * value)) %>% 
-    ggplot(aes(x = t, y = `expected score`, color = symptom)) +
-    geom_line(size = 1) +
-    ylim(c(0, ymax)) +
+    ggplot(aes(x = t, y = forcats::fct_rev(factor(symptom)), fill = `expected score`)) +
+    geom_raster() +
     coord_cartesian(expand = FALSE) +
-    ggtitle(title) +
-    theme(legend.position="bottom") + 
     xlab("Time (years)") +
-    scale_color_manual(values = colors) +
-    theme_cowplot(font_size = font_size)
+    ylab("") +
+    scale_fill_distiller(palette = "OrRd", limits = c(0, 4)) +
+    theme_cowplot(font_size = font_size) +
+    facet_grid(symptom_type ~ ., scales = "free", shrink = TRUE, space = "free_y")
 }
 
 # Define server logic required to generate and plot data
@@ -108,14 +92,8 @@ shinyServer(function(input, output) {
   output$speeds = renderPlot({
     plot_speeds(input$subject_ID)
   })
-  output$lines = renderPlot({
-    cowplot::plot_grid(
-      make_lines(input$subject_ID, bulbar_symptoms, title = "Bulbar (mouth/throat) progression"),
-      make_lines(input$subject_ID, motor_symptoms, title = "Motor progression"),
-      make_lines(input$subject_ID, respiratory_symptoms, title = "Respiratory progression"),
-      make_lines(input$subject_ID, "all", title = "Total progression"),
-      ncol = 2
-    )
+  output$all_symptoms = renderPlot({
+    make_all(input$subject_ID)
   },
   height = 600
   )
