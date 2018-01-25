@@ -25,7 +25,7 @@ shinyUI(pageWithSidebar(
                   textOutput("instructions1"),
                   plotOutput(
                     "all_symptoms", 
-                    height = "600px",
+                    height = "400px",
                     click = "showTab", 
                     hover = "decimal"
                   )
@@ -38,9 +38,12 @@ shinyUI(pageWithSidebar(
                                 "Turning", "Walking", "Climbing", "Respiratory")),
                   h3(textOutput("h3")), 
                   textOutput("instructions2"),
-                  plotOutput("distPlot", hover = hoverOpts("symptom_hover", delay = 50)),
-                  htmlOutput("description"),
-                  textOutput("y")
+                  plotOutput(
+                    "distPlot", 
+                    hover = hoverOpts("symptom_hover", delay = 50),
+                    height = "400px"
+                  ),
+                  htmlOutput("description")
                 )
     ),
     width = 10
