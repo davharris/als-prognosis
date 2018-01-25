@@ -52,9 +52,10 @@ full_validation_predictions %>%
 
 
 full_validation_predictions %>% 
-  group_by(subject, future_elapsed) %>% 
+  group_by(subject, future_elapsed, symptom) %>% 
   summarize(absolute_error = abs(mean(observed_severity - predicted_severity))) %>% 
   ggplot(aes(x = future_elapsed, y = absolute_error)) +
+  geom_point() + 
   geom_smooth() +
   xlab("Years since last observation") +
   cowplot::theme_cowplot()
@@ -76,13 +77,24 @@ some_correlations = colMeans(posterior_samples(fit, "cor")) %>%
 diagonal = data_frame(c = symptom_names, e = symptom_names, value = 1)
 all_correlations = some_correlations %>% 
   rename(c = e, e = c) %>% 
-  rbind(some_correlations, diagonal)
+  rbind(some_correlations, diagonal) %>% 
+  rename(correlation = value)
 
-ggplot(all_correlations, aes(x = c, y = e, fill = value)) + 
+ggplot(all_correlations, aes(x = c, y = e, fill = correlation)) + 
   geom_raster() +
-  viridis::scale_fill_viridis(option = "B") +
-  cowplot::theme_cowplot(16)
+  viridis::scale_fill_viridis(option = "B", limits = c(0, 1)) +
+  cowplot::theme_cowplot(16) +
+  coord_equal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+all_correlations %>%
+  spread(e, correlation) %>% 
+  .[-1] %>% 
+  svd() %>% 
+  .$d %>% 
+  cumsum() %>% 
+  `/`(10) %>% 
+  plot(ylim = c(0, 1), type = "h", yaxs = "i", bty = "l")
 
 training_data %>%
   ungroup() %>% 
