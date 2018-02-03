@@ -47,3 +47,29 @@ graph_input = graph_probs %>%
 saveRDS(graph_input, file = "graph_input.rds")
 
 
+
+# Figure-for-slides -------------------------------------------------------
+
+
+example_subject = training_subjects[10]
+
+example_data = training_data %>% 
+  filter(subject == example_subject) %>% 
+  select(subject, elapsed) %>% 
+  posterior_linpred(fit, newdata = ., transform = TRUE, nsamples = 2)
+
+task = "Cutting"
+cbind(
+  x = filter(training_data, subject == example_subject) %>% pull(elapsed), 
+  observed = filter(training_data, subject == example_subject)[[task]],
+  example_data[1,,paste0(task, 1:5)]
+) %>% 
+  as_data_frame() %>%
+  gather(key, value, -1, -2) %>% 
+  mutate(key = forcats::fct_rev(factor(key, labels = 4:0))) %>% 
+  ggplot() +
+  geom_area(aes(x = x, y = value, fill = key)) +
+  geom_vline(aes(xintercept = x, color = factor(5 - observed, levels = 0:4)), size = 3) +
+  scale_fill_brewer(palette = "OrRd", direction = -1) +
+  scale_color_brewer(palette = "OrRd", direction = -1, drop = FALSE) +
+  cowplot::theme_cowplot()

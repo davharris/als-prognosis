@@ -10,6 +10,7 @@ fit = brm(
   ) + 
     set_rescor(FALSE), 
   family = cumulative(),
+  prior = set_prior("student_t(3, 0, 25)", class = "b"),
   data = training_data,
   chains = 2,
   cores = 2,

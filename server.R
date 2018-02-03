@@ -1,4 +1,5 @@
-library(tidyverse)
+library(ggplot2)
+library(dplyr)
 library(cowplot)
 graph_input = read_rds("graph_input.rds")
 validation_data = read_rds("validation_data.rds")
@@ -83,7 +84,7 @@ make_all = function(subject){
 
 get_symptom = function(group, y){
   out = symptom_list[[group]][round(y)]
-  if (is_null(out)) {
+  if (is.null(out)) {
     "Respiratory"
   } else {
     out

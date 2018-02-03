@@ -268,16 +268,16 @@ model {
     mu_Respiratory[n] = mu_Respiratory[n] + (r_1_Respiratory_19[J_1[n]]) * Z_1_Respiratory_19[n] + (r_1_Respiratory_20[J_1[n]]) * Z_1_Respiratory_20[n]; 
   } 
   // priors including all constants 
-  target += student_t_lpdf(temp_Speech_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Salivation_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Swallowing_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Handwriting_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Cutting_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Dressing_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Turning_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Walking_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Climbing_Intercept | 3, 0, 10); 
-  target += student_t_lpdf(temp_Respiratory_Intercept | 3, 0, 10); 
+  target += student_t_lpdf(b_Speech | 3, 0, 25); 
+  target += student_t_lpdf(b_Salivation | 3, 0, 25); 
+  target += student_t_lpdf(b_Swallowing | 3, 0, 25); 
+  target += student_t_lpdf(b_Handwriting | 3, 0, 25); 
+  target += student_t_lpdf(b_Cutting | 3, 0, 25); 
+  target += student_t_lpdf(b_Dressing | 3, 0, 25); 
+  target += student_t_lpdf(b_Turning | 3, 0, 25); 
+  target += student_t_lpdf(b_Walking | 3, 0, 25); 
+  target += student_t_lpdf(b_Climbing | 3, 0, 25); 
+  target += student_t_lpdf(b_Respiratory | 3, 0, 25); 
   target += student_t_lpdf(sd_1 | 3, 0, 10)
     - 20 * student_t_lccdf(0 | 3, 0, 10); 
   target += lkj_corr_cholesky_lpdf(L_1 | 1); 

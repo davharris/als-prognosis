@@ -53,28 +53,55 @@ full_validation_predictions %>%
 
 full_validation_predictions %>% 
   group_by(subject, future_elapsed, symptom) %>% 
-  summarize(absolute_error = abs(mean(observed_severity - predicted_severity))) %>% 
+  summarize(absolute_error = mean(abs(observed_severity - predicted_severity))) %>% 
   ggplot(aes(x = future_elapsed, y = absolute_error)) +
-  geom_point() + 
   geom_smooth() +
+  coord_cartesian(expand = FALSE) +
+  ylim(c(0, 4)) + 
   xlab("Years since last observation") +
-  cowplot::theme_cowplot()
+  ylab("Mean absolute error") + 
+  cowplot::theme_cowplot() +
+  geom_vline(xintercept = 1.0) +
+  geom_hline(yintercept = 0.55)
 
+
+full_validation_predictions %>% 
+  group_by(subject, future_elapsed) %>% 
+  summarize(observed = sum(observed_severity), predicted = sum(predicted_severity)) %>% 
+  group_by(subject) %>% 
+  arrange(subject, future_elapsed) %>% 
+  summarize(predicted_slope = (predicted[9] - predicted[1]) / (future_elapsed[9] - future_elapsed[1]),
+            observed_slope = (observed[9] - observed[1]) / (future_elapsed[9] - future_elapsed[1])) %>% 
+  summarize(r2 = 1 - var(predicted_slope - observed_slope) / var(observed_slope),
+            sd(predicted_slope/12 - observed_slope/12), 
+            cor(predicted_slope, observed_slope)^2)
 
 full_validation_predictions %>% 
   group_by(symptom) %>% 
   summarize(RMSE = signif(Metrics::rmse(observed_severity, predicted_severity), 1))
 
+expand_names = function(x){
+  case_when(
+    x == "Cutting" ~ "Cutting/eating food",
+    x == "Dressing" ~ "Dressing and hygiene",
+    x == "Turning" ~ "Turning in bed",
+    x == "Climbing" ~ "Climbing stairs",
+    TRUE ~ x
+  )
+}
 
 some_correlations = colMeans(posterior_samples(fit, "cor")) %>% 
   enframe %>% 
   separate(name, letters[1:6]) %>% 
   filter(d == "elapsed", f == "elapsed") %>% 
   select(c, e, value) %>% 
-  mutate(c = factor(c, levels = symptom_names), 
-         e = factor(e, levels = symptom_names))
+  mutate(c = expand_names(c), e = expand_names(e)) %>% 
+  mutate(c = factor(c, levels = expand_names(symptom_names)), 
+         e = factor(e, levels = expand_names(symptom_names)))
 
-diagonal = data_frame(c = symptom_names, e = symptom_names, value = 1)
+diagonal = data_frame(c = expand_names(symptom_names), 
+                      e = expand_names(symptom_names), 
+                      value = 1)
 all_correlations = some_correlations %>% 
   rename(c = e, e = c) %>% 
   rbind(some_correlations, diagonal) %>% 
@@ -85,7 +112,7 @@ ggplot(all_correlations, aes(x = c, y = e, fill = correlation)) +
   viridis::scale_fill_viridis(option = "B", limits = c(0, 1)) +
   cowplot::theme_cowplot(16) +
   coord_equal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 
 all_correlations %>%
   spread(e, correlation) %>% 
@@ -98,11 +125,14 @@ all_correlations %>%
 
 training_data %>%
   ungroup() %>% 
-  filter(subject %in% c(255656, 501995)) %>% 
+  filter(subject %in% c(230653, 395329)) %>%
   select(1:10, month, subject) %>% 
   gather(key, value, -month, -subject) %>% 
   mutate(`Function\nscore` = forcats::fct_rev(factor(5 - value, levels = 0:4)),
          subject = factor(subject, labels = c("Subject 1", "Subject 2"))) %>% 
+  filter(key %in% c("Speech", "Swallowing", "Walking", "Respiratory", "Handwriting")) %>% 
+  mutate(key = ifelse(key == "Respiratory", "Breathing", key)) %>% 
+  mutate(key = forcats::fct_rev(factor(key))) %>% 
   ggplot(aes(x = month, y = key, fill = `Function\nscore`)) +
   geom_raster() +
   scale_fill_brewer(type = "seq", palette = "OrRd", direction = 1, drop = FALSE) +
@@ -110,4 +140,43 @@ training_data %>%
   scale_x_continuous(breaks = seq(0, 12, 3)) +
   coord_cartesian(expand = FALSE) +
   ylab("") +
-  xlab("Time")
+  xlab("Time (Months)") +
+  cowplot::theme_cowplot(16)
+
+the_subject = full_validation_predictions %>% 
+  group_by(subject) %>% 
+  summarize(absolute_error = mean(abs((observed_severity - predicted_severity)))) %>% 
+  arrange(absolute_error) %>% 
+  pull(1) %>% 
+  .[103]
+
+training_data %>%
+  ungroup() %>% 
+  select(1:10, month, subject) %>% 
+  gather(symptom, observed_severity, -month, -subject) %>% 
+  full_join(full_validation_predictions, c("month", "subject", "symptom", "observed_severity")) %>% 
+  filter(subject == the_subject) %>% 
+  mutate(observed_severity = ifelse(is.na(predicted_severity), observed_severity, predicted_severity)) %>% 
+  mutate(Function = 5 - observed_severity) %>% 
+  ggplot(aes(x = month, y = symptom, fill = Function)) +
+  geom_raster() +
+  scale_fill_distiller(palette = "OrRd", direction = -1, limits = c(0, 4)) +
+  geom_vline(xintercept = 3.5) +
+  coord_cartesian(expand = FALSE)
+ggsave("test.png", dpi = 300, width = 6, height = 4)
+
+
+
+plot_subject = 13165
+
+linpred_validation %>% 
+  as.data.frame() %>% 
+  filter(validation_data$subject == plot_subject) %>% 
+  select(one_of(paste0("Handwriting", 1:2))) %>% 
+  rowSums() %>% 
+  plot(
+    validation_data$elapsed[validation_data$subject == plot_subject], 
+    ., 
+    ylim = c(0, 1), 
+    type = "l"
+  )
