@@ -50,19 +50,60 @@ full_validation_predictions %>%
   xlab("Years since last observation") +
   ylab("Total functional score")
 
+probs = posterior_linpred(
+  fit, 
+  transform = TRUE, 
+  newdata = validation_data
+) %>% 
+  apply(3, colMeans)
+
+
+map(
+  1:10, 
+  function(i){
+    y_hat = probs[,5 * (i - 1) + (1:5)]
+    validation_y = validation_data[[symptom_names[i]]]
+    
+    likelihoods = y_hat[cbind(1:nrow(y_hat), validation_y)]
+    data_frame(
+      i = i,
+      x = 12 * (validation_data$elapsed - validation_data$month_3_elapsed),
+      y = as.numeric(likelihoods == apply(y_hat, 1, max)))
+  }
+) %>%
+  bind_rows() %>% 
+  ggplot(aes(x = x, y = y, group = factor(i))) +
+  geom_smooth(
+    method = "gam", 
+    method.args = list(family = "binomial"), 
+    se = FALSE,
+    color = alpha(1, .5)
+  ) +
+  ylab("Accuracy") +
+  cowplot::theme_cowplot(font_size = 20) +
+  coord_cartesian(xlim = c(0, 19), ylim = c(0, 1), expand = FALSE) + 
+  scale_x_continuous(breaks = 3 * (0:10)) + 
+  scale_y_continuous(breaks = seq(0, 1, .2)) +
+  xlab("Months from last training survey")
+ggsave("accuracy.png")
 
 full_validation_predictions %>% 
   group_by(subject, future_elapsed, symptom) %>% 
   summarize(absolute_error = mean(abs(observed_severity - predicted_severity))) %>% 
-  ggplot(aes(x = future_elapsed, y = absolute_error)) +
-  geom_smooth() +
-  coord_cartesian(expand = FALSE) +
-  ylim(c(0, 4)) + 
-  xlab("Years since last observation") +
-  ylab("Mean absolute error") + 
-  cowplot::theme_cowplot() +
-  geom_vline(xintercept = 1.0) +
-  geom_hline(yintercept = 0.55)
+  ggplot(aes(x = 12 * future_elapsed,y = absolute_error,group = symptom)) + 
+  geom_smooth(method = "gam", se = FALSE, color = alpha(1, .5)) + 
+  coord_cartesian(xlim = c(0, 19), ylim = c(0, 1.9), expand = FALSE) + 
+  scale_color_manual(
+    values = c(colorblindr::palette_OkabeIto_black, "red", "gray"),
+    guide = FALSE
+  ) + 
+  scale_x_continuous(breaks = 3 * (0:10)) + 
+  xlab("Months from last training survey") + 
+  ylab("Mean absolute error") +
+  cowplot::theme_cowplot(font_size = 20)
+ggsave("MAE.png")
+
+
 
 
 full_validation_predictions %>% 
