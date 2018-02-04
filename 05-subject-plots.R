@@ -73,3 +73,16 @@ cbind(
   scale_fill_brewer(palette = "OrRd", direction = -1) +
   scale_color_brewer(palette = "OrRd", direction = -1, drop = FALSE) +
   cowplot::theme_cowplot()
+
+# Demographics etc --------------------------------------------------------
+
+demographics %>% 
+  filter(subject_id %in% subject_ids) %>% 
+  select(subject_id, Age, Sex) %>% 
+  inner_join(history, "subject_id") %>% 
+  na.omit() %>% 
+  rename(subject = subject_id) %>% 
+  inner_join(distinct(validation_data, subject, month_3_elapsed), by = "subject") %>% 
+  mutate(elapsed = (month_3_elapsed - Onset_Delta/365.24)* 12) %>% 
+  select(subject, Age, Sex, elapsed, Site_of_Onset) %>% 
+  write_csv("app_demographics.csv")

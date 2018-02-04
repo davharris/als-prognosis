@@ -4,7 +4,8 @@ patient_ids = readLines("PRO-ACT/Archive/ALS_Prize_slopes/slopes.train") %>%
   gsub("^.*:(.*)\t.*", "\\1", .)
 
 history = history %>% 
-  distinct(subject_id, Onset_Delta)
+  distinct(subject_id, Onset_Delta) %>% 
+  inner_join(distinct(history, subject_id, Site_of_Onset), "subject_id")
 
 # Combine 5a and 5b into one question, then drop the originals
 frs = frs %>% 
