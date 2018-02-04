@@ -22,7 +22,9 @@ For example, if the task is Walking, then "4" is normal walking, "2" is walking 
 
 # How do we use this for prediction?
 
-Okay, so we get ten of these time series for each patient, but how do we use them for prediction?
+Okay, so we get ten of these time series for each patient, but how do we use them for prediction? There's a lot of structure here, since we're trying to make 10 different kinds of predictions for each patient over time. It's not really clear how we'd squeeze all of this into something like a random forest.
+
+# Logistic regression / ordered logit
 
 # App
 
@@ -35,3 +37,21 @@ Below, predicted scores over the next two years are grouped by type: respiratory
 Now let's say the patient wants to know if they'll need a wheelchair one year from now. Clicking the "walking" task brings up their likely scores. This area marked "two" corresponds to walking with assistance, so that's the most likely scenario, but they could still lose that ability at any time.  
 
 The doctor can also move their mouse to see the patient's projected scores at different points in the future.
+
+# Model validation
+
+Finally, we should make sure that the model's predictions are actually worth something.  
+
+# The prediction task
+
+To do this, I set up a prediction task. Here, time is the x-axis.
+
+First, I showed the model the complete histories from a few hundred subjects, which included 12 surveys spaced a month or two apart.
+
+Next, I showed the model the first three data points for the other half of the subjects, and asked it to predict how they'd answer about their health on the remaining 9 surveys.
+
+# Accuracy
+
+I evaluated the model's performance in two different ways.
+
+First, I asked, how often did subjects respond to their survey with the highest-probability score?

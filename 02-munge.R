@@ -46,4 +46,6 @@ training_data = data %>%
 validation_data = data %>% 
   anti_join(training_data, by = c("subject", "month"))
 
+# Keep these two versions of the file in sync
 saveRDS(validation_data, "validation_data.rds")
+saveRDS(validation_data, "app/validation_data.rds")
