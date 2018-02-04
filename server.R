@@ -3,6 +3,7 @@ library(dplyr)
 library(cowplot)
 graph_input = read_rds("graph_input.rds")
 validation_data = read_rds("validation_data.rds")
+subject_data = read_csv("app_demographics.csv")
 #ranefs = read_rds("ranefs.rds")
 
 descriptions = yaml::yaml.load_file("frs.yaml")
@@ -37,32 +38,32 @@ one_symptom_timeline = function(subject, symptom, x){
   df = df %>% 
     mutate(Function = paste0(5 - severity, ": ", round(value * 100), "%")) %>% 
     mutate(Function = gsub(" 0%", " <1%", Function)) %>% 
-    filter(near(t, x)) %>% 
+    filter(near(t * 12, x)) %>% 
     select(severity, Function) %>% 
     inner_join(df, by = c("severity"))
   
   df %>% 
     ggplot(
       aes(
-        x = t,
+        x = 12 * t,
         y = value,
         fill = Function
       )
     ) + 
     geom_area() + 
     scale_fill_brewer(type = "seq", palette = "OrRd", direction = -1) + 
-    xlab("Years") +
+    xlab("Time (months)") +
     ylab("Probability") +
     ylim(c(0, 1.01)) + 
     coord_cartesian(expand = FALSE) + 
     theme_cowplot(font_size = font_size) +
-    theme(legend.position = c(x / 2, .5), 
+    theme(legend.position = c(x / 2 / 12, .5), 
           legend.background = element_rect(fill = "white"), 
           legend.margin = margin(4,4,4,4),
-          legend.justification = ifelse(x < 1, 0, 1)
+          legend.justification = ifelse(x < 12, 0, 1)
     ) +
-    xlim(c(0, 2)) +
-    guides(fill=guide_legend(title=paste("Probable scores\nafter", x * 12, "months"))) + 
+    xlim(c(0, 2 * 12)) +
+    guides(fill=guide_legend(title=paste("Probable scores\nafter", x, "months"))) + 
     geom_vline(xintercept = ifelse(is.null(x), 0, x)) 
 }
 
@@ -71,10 +72,10 @@ make_all = function(subject){
     filter(subject == !!subject) %>% 
     group_by(t, symptom, symptom_type) %>% 
     summarize(`expected score` = sum((5-severity) * value)) %>% 
-    ggplot(aes(x = t, y = forcats::fct_rev(factor(symptom)), fill = `expected score`)) +
+    ggplot(aes(x = 12 * t, y = forcats::fct_rev(factor(symptom)), fill = `expected score`)) +
     geom_raster() +
     coord_cartesian(expand = FALSE) +
-    xlab("Time (years)") +
+    xlab("Time (months)") +
     ylab("") +
     scale_fill_distiller(palette = "OrRd", limits = c(0, 4)) +
     theme_cowplot(font_size = font_size) +
@@ -90,6 +91,9 @@ get_symptom = function(group, y){
     out
   }
 }
+
+
+
 
 # Define server logic required to generate and plot data
 shinyServer(function(input, output, session) {
@@ -107,13 +111,34 @@ shinyServer(function(input, output, session) {
     showTab(inputId = "tabs", target = "Symptoms", select = TRUE)
   })
   
-  x = 1
+  x = 12
   makeReactiveBinding("x")
   
   symptom = "respiratory"
   makeReactiveBinding("symptom")
   
-  observeEvent(input$symptom_hover$x, {x <<- round(input$symptom_hover$x * 12) / 12})
+  observeEvent(input$symptom_hover$x, {x <<- round(input$symptom_hover$x)})
+  
+  output$subject_summary = renderText(
+    {
+      subject_info = filter(subject_data, subject == input$subject_ID)
+      paste0(
+        "Subject ", 
+        subject_info$subject, 
+        " is a ", 
+        subject_info$Age, 
+        " year old ",
+        subject_info$Sex,
+        ". ",
+        ifelse(subject_info$Sex == "Male", "He", "She"),
+        " began experiencing ",
+        tolower(strsplit(subject_info$Site_of_Onset, " +")[[1]][[2]]),
+        "-onset ALS ",
+        round(subject_info$elapsed),
+        " months ago. "
+      )
+    }
+  )
   
   output$distPlot <- renderPlot(
     {

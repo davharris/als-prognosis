@@ -7,7 +7,9 @@ subject_ids = read_csv("subject_ids.csv", col_types = cols(x = col_integer()))[[
 shinyUI(pageWithSidebar(
   
   # Application title
-  headerPanel("ALS Prognosis Predictor"),
+  headerPanel("The ALS Prognosis Predictor"),
+  
+  
   
   # Sidebar with a slider input for number of observations
   sidebarPanel(
@@ -23,6 +25,8 @@ shinyUI(pageWithSidebar(
                 tabPanel(
                   "Summary",
                   textOutput("instructions1"),
+                  tags$hr(),
+                  textOutput("subject_summary"),
                   plotOutput(
                     "all_symptoms", 
                     height = "400px",
