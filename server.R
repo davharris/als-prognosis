@@ -62,7 +62,7 @@ one_symptom_timeline = function(subject, symptom, x){
           legend.margin = margin(4,4,4,4),
           legend.justification = ifelse(x < 12, 0, 1)
     ) +
-    xlim(c(0, 2 * 12)) +
+    scale_x_continuous(breaks = seq(0, 24, 3)) + 
     guides(fill=guide_legend(title=paste("Probable scores\nafter", x, "months"))) + 
     geom_vline(xintercept = ifelse(is.null(x), 0, x)) 
 }
@@ -76,6 +76,7 @@ make_all = function(subject){
     geom_raster() +
     coord_cartesian(expand = FALSE) +
     xlab("Time (months)") +
+    scale_x_continuous(breaks = seq(0, 24, 3)) + 
     ylab("") +
     scale_fill_distiller(palette = "OrRd", limits = c(0, 4)) +
     theme_cowplot(font_size = font_size) +
@@ -108,7 +109,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$showTab, {
-    showTab(inputId = "tabs", target = "Symptoms", select = TRUE)
+    showTab(inputId = "tabs", target = "Daily Tasks", select = TRUE)
   })
   
   x = 12
@@ -118,6 +119,8 @@ shinyServer(function(input, output, session) {
   makeReactiveBinding("symptom")
   
   observeEvent(input$symptom_hover$x, {x <<- round(input$symptom_hover$x)})
+  
+  output$tag = renderText("Forecasting multi-symptom progression of Lou Gehrig's disease")
   
   output$subject_summary = renderText(
     {
@@ -163,6 +166,6 @@ shinyServer(function(input, output, session) {
     )
     HTML(paste(description, collapse="<br/>"))
   })
-  output$instructions1 = renderText("This tab provides an overview of the subject's progression. Switch to the \"symptoms\" tab for more detail on individual symptoms.")
+  output$instructions1 = renderText("This tab provides an overview of the subject's progression. Switch to the \"Daily Tasks\" tab for more detail on their projected ability to perform individual tasks.")
   output$instructions2 = renderText("Move your mouse to a time in the future to see likely scores")
 })

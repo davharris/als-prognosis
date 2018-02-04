@@ -9,8 +9,6 @@ shinyUI(pageWithSidebar(
   # Application title
   headerPanel("The ALS Prognosis Predictor"),
   
-  
-  
   # Sidebar with a slider input for number of observations
   sidebarPanel(
     selectInput("subject_ID", "Choose a subject", subject_ids, selected = 13165L),
@@ -35,7 +33,7 @@ shinyUI(pageWithSidebar(
                   )
                 ),
                 tabPanel(
-                  "Symptoms", 
+                  "Daily Tasks", 
                   selectInput("symptom", 
                               label = "Choose a symptom", 
                               c("Speech", "Salivation", "Swallowing", "Handwriting", "Cutting", "Dressing", 
