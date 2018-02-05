@@ -1,6 +1,6 @@
 # Predicting ALS symptom progression
 
-Hi, I'm Dave Harris, and I'll be telling you about my work on using forcasting the progression of Lou Gehrig's disease, which is a neurodegenerative disease causing paralysis. 
+Hi, I'm Dave Harris, and I'll be telling you about my work on forcasting the progression of Lou Gehrig's disease, which is a neurodegenerative condition causing paralysis. 
 
 It's a lot more common than many people realize: the lifetime risk is about 1 in 400 people.
 
