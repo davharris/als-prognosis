@@ -14,9 +14,7 @@ Just to give a sense of how variable ALS progression is, here are two of the mos
 
 # How sick will I be next year?
 
-We can get anonymous ALS patient histories for modeling from the PRO-ACT database.
-
-I'll be focusing on this "functional rating scale", which describes patients' ability to perform 10 basic tasks. 
+To try and understand this variation, I downloaded anonymous ALS patient histories from the PRO-ACT database. The database includes standardized patient reports about their ability to perform 10 basic tasks. 
 
 Function on each task is reported on a scale from 4 (which indicates full function) to zero (which indicates no function). 
 
@@ -82,4 +80,4 @@ The upshot of all of this is that, when ALS patients ask their doctors about pla
 
 # David J. Harris
 
-Thanks for listening. I'm Dave Harris, and I've built customized statistical models for describing and making predictions about all sorts of biological systems. I'd be happy to answer any questions about my previous work or about what I presented today.
+Thanks for listening. I'm Dave Harris, and I've built customized statistical models for describing and making predictions about various biological systems. I'd be happy to answer any questions about my previous work or about what I presented today.
