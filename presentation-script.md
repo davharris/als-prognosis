@@ -20,11 +20,19 @@ Each time someone takes this test, they report their ability to perform these ta
 
 For example, if the task is Walking, then "4" is normal walking, "2" is walking with a cane, and "0" is when you can't move your legs at all.
 
-# How do we use this for prediction?
+# The data
 
-Okay, so we have time series data for each patient for 10 different types of daily tasks, but how do we use this information to make predictions about how each patient's ability to perform each of these 10 tasks will change over time? 
+Okay, so we have time series data for each patient for 10 different types of daily tasks, 5 of which I've shown here.
+
+How do we use this information to make predictions about each patient's ability to perform these 10 tasks in the future? 
+
+There aren't any standard statistics or machine learning packages that are well-suited to this sort of problem, which has multiple response variables and repeated observations of each subject over time, so I had to build my own statistical model.
+
+I used the Stan probabilistic programming language to specify the model, which I'll build up to over the next few slides.
 
 # Logistic regression / ordered logit
+
+
 
 # App
 
