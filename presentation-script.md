@@ -1,12 +1,12 @@
 # Predicting ALS symptom progression
 
-Hi, I'm Dave Harris, and I'll be telling you about my work on forcasting the progression of Lou Gehrig's disease, which is a neurodegenerative condition causing paralysis. 
+Hi, I'm Dave Harris, and today I'll be telling you about my work on forcasting the progression of ALS (also known as Lou Gehrig's disease), which is a neurodegenerative condition that causes paralysis. 
 
 It's a lot more common than many people realize: the lifetime risk is about 1 in 400 people.
 
 # It's hard
 
-For many patients, one of the most difficult aspects of the disease is the uncertainty: patients want to know how long they have until they'll need a wheelchair or until they won't be able to speak, and doctors basically can't give accurate answers yet.
+For many patients, one of the most difficult aspects of the disease is the uncertainty: patients want to know how long they have until they'll need a wheelchair or until they won't be able to speak, but even expert physicians have difficulty predicting how quickly a patient's ALS symptoms will progress.
 
 # Famous folks
 
@@ -14,7 +14,7 @@ Just to give a sense of how variable this disease is, here are two of the most f
 
 # How sick will I be next year?
 
-To try and address this, I downloaded a collection of patient histories from the PRO-ACT database. I'll be focusing on this "functional rating scale", which describes patients' ability to perform 10 basic tasks.
+To try and address this, I downloaded a collection of patient histories from the PRO-ACT database. I'll be focusing on this "functional rating scale", which describes patients' ability to perform 10 basic tasks (such as walking).
 
 Each time someone takes this test, they report their ability to perform these tasks on a scale from 4 (which indicates full function) to zero (which indicates no function). 
 
@@ -22,13 +22,13 @@ For example, if the task is Walking, then "4" is normal walking, "2" is walking 
 
 # How do we use this for prediction?
 
-Okay, so we get ten of these time series for each patient, but how do we use them for prediction? There's a lot of structure here, since we're trying to make 10 different kinds of predictions for each patient over time. It's not really clear how we'd squeeze all of this into something like a random forest.
+Okay, so we have time series data for each patient for 10 different types of daily tasks, but how do we use this information to make predictions about how each patient's ability to perform each of these 10 tasks will change over time? 
 
 # Logistic regression / ordered logit
 
 # App
 
-The app lets the doctor can pull up a dashboard for each patient.  
+The app lets the doctor pull up a dashboard for each patient.  
 
 Here is some demographic and medical information.
 
