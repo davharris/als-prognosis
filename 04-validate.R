@@ -136,24 +136,26 @@ some_correlations = colMeans(posterior_samples(fit, "cor")) %>%
   separate(name, letters[1:6]) %>% 
   filter(d == "elapsed", f == "elapsed") %>% 
   select(c, e, value) %>% 
-  mutate(c = expand_names(c), e = expand_names(e)) %>% 
-  mutate(c = factor(c, levels = expand_names(symptom_names)), 
-         e = factor(e, levels = expand_names(symptom_names)))
+  mutate(c = c, e = e)
 
-diagonal = data_frame(c = expand_names(symptom_names), 
-                      e = expand_names(symptom_names), 
+diagonal = data_frame(c = symptom_names, 
+                      e = symptom_names, 
                       value = 1)
 all_correlations = some_correlations %>% 
   rename(c = e, e = c) %>% 
   rbind(some_correlations, diagonal) %>% 
   rename(correlation = value)
 
-ggplot(all_correlations, aes(x = c, y = e, fill = correlation)) + 
+ggplot(all_correlations, aes(x = factor(c, levels = symptom_names), 
+                             y = factor(expand_names(e), levels = expand_names(symptom_names)), fill = correlation)) + 
   geom_raster() +
   viridis::scale_fill_viridis(option = "B", limits = c(0, 1)) +
   cowplot::theme_cowplot(16) +
   coord_equal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab("") + 
+  ylab("")
+ggsave("all_correlations.png")
 
 all_correlations %>%
   spread(e, correlation) %>% 
@@ -182,7 +184,8 @@ training_data %>%
   coord_cartesian(expand = FALSE) +
   ylab("") +
   xlab("Time (Months)") +
-  cowplot::theme_cowplot(16)
+  cowplot::theme_cowplot(16) +
+  geom_hline(yintercept = 0.5 + seq(1:4), color = alpha(1, .25))
 
 the_subject = full_validation_predictions %>% 
   group_by(subject) %>% 

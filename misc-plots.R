@@ -33,7 +33,6 @@ ggsave("binary.png", height = 5, width = 8)
 make_plot(df$elapsed * 12, probs)
 ggsave("ordered.png", height = 5, width = 8)
 
-
 # Uncertainty -------------------------------------------------------------
 
 focal_subject = 649
@@ -134,3 +133,36 @@ r_climb = r_climb[grep("elapsed\\]", names(r_climb))]
 r_walk = colMeans(posterior_samples(fit, c("r_subject__Walking")))
 r_walk = r_walk[grep("elapsed\\]", names(r_walk))]
 
+
+# special patient ---------------------------------------------------------
+
+linpred = posterior_linpred(
+  fit, 
+  df2, 
+  allow_new_levels = TRUE, 
+  transform = TRUE
+)
+
+walking_linpred = linpred[ , , grep("Walking", dimnames(linpred)[[3]])]
+
+special_df = apply(walking_linpred, 3, colMeans) %>% 
+  as_data_frame()
+colnames(special_df) = 4:0
+
+visit_times = training_data %>% filter(subject %in% df2$subject) %>% pull(elapsed)
+
+cbind(special_df, x = df$elapsed) %>% 
+  gather(key, value, -x) %>% 
+  ggplot(aes(x = 12 * x, y = value, fill = key)) +
+  geom_area() +
+  scale_fill_brewer(palette = "OrRd", direction = -1, drop = FALSE, guide = FALSE) +
+  coord_cartesian(expand = FALSE) +
+  cowplot::theme_cowplot(20) +
+  xlab("Months since onset") +
+  ylab("Probability") +
+  geom_vline(xintercept = visit_times * 12)
+ggsave("ordered_special.png", height = 5, width = 8)
+
+
+make_plot(df$elapsed * 12, probs) + geom_vline(xintercept = visit_times * 12)
+ggsave("ordered_lines.png", height = 5, width = 8)
