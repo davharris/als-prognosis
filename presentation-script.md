@@ -1,24 +1,26 @@
 # Predicting ALS symptom progression
 
-Hi, I'm Dave Harris, and today I'll be telling you about my work on forcasting the progression of ALS (also known as Lou Gehrig's disease), which is a neurodegenerative condition that causes paralysis. 
+Hi, I'm Dave Harris, and today I'll be telling you forcasting the progression of ALS (also known as Lou Gehrig's disease).
 
-It's a lot more common than many people realize: the lifetime risk is about 1 in 400 people.
+ALS is a neurodegenerative condition that causes paralysis, and it's surprisingly common: the lifetime risk is about 1 in 400 people.
 
 # It's hard
 
-For many patients, one of the most difficult aspects of the disease is the uncertainty: patients want to know how long they have until they'll need a wheelchair or until they won't be able to speak, but even expert physicians have difficulty predicting how quickly a patient's ALS symptoms will progress.
+Patients and their families want to know when they'll need a wheelchair or when they'll need full-time care, but even expert physicians have trouble making this kind of prediction well, which makes the disease even harder to deal with.
 
 # Famous folks
 
-Just to give a sense of how variable this disease is, here are two of the most famous people with the disease. Lou Gehrig lived less than two years after he was diagnosed, which is on the short side, while Stephen Hawking is still alive more than 50 years later. There's a lot of research on classifying subtypes of the disease, but it's still hard to say where a given patient will fall on this spectrum.
+Just to give a sense of how variable this disease is, here are two of the most famous patients. Lou Gehrig lived less than two years after he was diagnosed, while Stephen Hawking is still alive more than 50 years later.
 
 # How sick will I be next year?
 
-To try and address this, I downloaded a collection of patient histories from the PRO-ACT database. I'll be focusing on this "functional rating scale", which describes patients' ability to perform 10 basic tasks (such as walking).
+We can get information on anonymous ALS patients from the PRO-ACT database.
 
-Each time someone takes this test, they report their ability to perform these tasks on a scale from 4 (which indicates full function) to zero (which indicates no function). 
+I'll be focusing on this "functional rating scale", which describes patients' ability to perform 10 basic tasks. 
 
-For example, if the task is Walking, then "4" is normal walking, "2" is walking with a cane, and "0" is when you can't move your legs at all.
+Function on each task is reported on a scale from 4 (which indicates full function) to zero (which indicates no function). 
+
+For example, if the task is Walking, then "4" is normal walking, and "0" is when you can't move your legs at all.
 
 # The data
 
@@ -34,15 +36,13 @@ I used the Stan probabilistic programming language and the "brms" package to spe
 
 So, the simplest way to model Walking would be logistic regression. As time-since-onset increases, the probability that a given subject will be able to walk goes down.
 
-To extend this model to five categories, we can use an extension of logistic regression called an ordered logit model. Its predictions look like this.
+Since we have five categories instead of two, we can use an extension of logistic regression called an ordered logit model. Its predictions look like this.
 
-Now, we can start to make useful predictions. Let's say a subject comes in to a doctor's office three times, about 1 year after onset. Their survey responses can tell us enough to start making personalized predictions. For example, here are the predictions for a patient that had no trouble walking 1 year in, and here are the predictions for someone that was advancing more quickly.
+Now, we can start to make useful predictions. We can look at a patient a year after onset and see immediately if they've been losing function faster or slower than average, then make a personalized prediction. In the Stan model, this all happens using random effects for each patient's slopes and intercepts.
 
-In the Stan model, this all happens using random effects for each patient's slopes and intercepts. Because the model is Bayesian, we get automatically a range of possible progression rates for each patient.
+One thing that helps a lot here is that the progression rates are tightly correlated across tasks.  For instance, when subjects start losing the ability to climb stairs, that provides the model with a nice nice "early warning system" for the ability to walk on flat ground.
 
-One thing that helps a lot is that the progression rates are tightly correlated across tasks.  For instance, when subjects start losing the ability to climb stairs, that provides the model with a nice nice "early warning system" for the ability to walk on flat ground.  
-
-These other clusters of highly-correlated also help the model share information across tasks when it's making predictions.
+Likewise, these other clusters help the model use information from one task to make better predictions about the others.
 
 # App
 
@@ -70,17 +70,11 @@ For the other half of the subjects, I only showed the model the first three data
 
 # Accuracy
 
-I evaluated the model's predictions in two different ways.
-
-First, I asked, how often did the model's best guess about a patient's score turn out to be right? 
+One way to evaluate a model is its accuracy: how often did the model's best guess about a patient's score turn out to be right? 
 
 Since their are 5 possible scores, random guessing would give the right answer 20% of the time.
 
 The decline in these ten lines show that it gets harder to make good predictions for each task as time goes on. Still, predictions for all ten tasks remain useful for well over a year.
-
-# Absolute error
-
-Next, I asked how *close* the model's 
 
 # How sick?
 
