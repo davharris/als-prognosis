@@ -28,7 +28,7 @@ How do we use this information to make predictions?
 
 There aren't any standard statistics or machine learning packages that are well-suited to this sort of problem, which involves ten different response variables over time, so I had to build my own statistical model.
 
-I used the Stan probabilistic programming language to specify the model, which I'll build up to over the next few slides, starting with the "Walking" task.
+I used the Stan probabilistic programming language and the "brms" package to specify the model, which I'll build up to over the next few slides, starting with the "Walking" task.
 
 # Logistic regression / ordered logit
 
@@ -76,11 +76,11 @@ First, I asked, how often did the model's best guess about a patient's score tur
 
 Since their are 5 possible scores, random guessing would give the right answer 20% of the time.
 
-These ten lines show that it gets harder to make good predictions for each task as time goes on. Still, predictions for all ten tasks remain useful for well over a year.
+The decline in these ten lines show that it gets harder to make good predictions for each task as time goes on. Still, predictions for all ten tasks remain useful for well over a year.
 
 # Absolute error
 
-Next, I asked how close the model's 
+Next, I asked how *close* the model's 
 
 # How sick?
 
