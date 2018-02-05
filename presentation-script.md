@@ -1,6 +1,6 @@
 # Predicting ALS symptom progression
 
-Hi, I'm Dave Harris, and today I'll be telling you forcasting the progression of ALS (also known as Lou Gehrig's disease).
+Hi, I'm Dave Harris, and today I'll be talking about my work forcasting the progression of ALS (also known as Lou Gehrig's disease).
 
 ALS is a neurodegenerative condition that causes paralysis, and it's surprisingly common: the lifetime risk is about 1 in 400 people.
 
@@ -10,11 +10,11 @@ Patients and their families want to know when they'll need a wheelchair or when 
 
 # Famous folks
 
-Just to give a sense of how variable this disease is, here are two of the most famous patients. Lou Gehrig lived less than two years after he was diagnosed, while Stephen Hawking is still alive more than 50 years later.
+Just to give a sense of how variable ALS progression is, here are two of the most famous patients. Lou Gehrig lived less than two years after he was diagnosed, while Stephen Hawking is still alive more than 50 years later. It's hard to say where a given patient is going to fall along this spectrum
 
 # How sick will I be next year?
 
-We can get information on anonymous ALS patients from the PRO-ACT database.
+We can get anonymous ALS patient histories for modeling from the PRO-ACT database.
 
 I'll be focusing on this "functional rating scale", which describes patients' ability to perform 10 basic tasks. 
 
@@ -38,7 +38,7 @@ So, the simplest way to model Walking would be logistic regression. As time-sinc
 
 Since we have five categories instead of two, we can use an extension of logistic regression called an ordered logit model. Its predictions look like this.
 
-Now, we can start to make useful predictions. We can look at a patient a year after onset and see immediately if they've been losing function faster or slower than average, then make a personalized prediction. In the Stan model, this all happens using random effects for each patient's slopes and intercepts.
+Now, we can start to make useful predictions. We can look at a patient a year after onset and see immediately if they've been losing function faster or slower than average, then generate a personalized predictions. In the Stan model, this all happens using random effects for each patient's slopes and intercepts.
 
 One thing that helps a lot here is that the progression rates are tightly correlated across tasks.  For instance, when subjects start losing the ability to climb stairs, that provides the model with a nice nice "early warning system" for the ability to walk on flat ground.
 
@@ -82,3 +82,4 @@ The upshot of all of this is that, when ALS patients ask their doctors about pla
 
 # David J. Harris
 
+Thanks for listening. I'm Dave Harris, and I've built customized statistical models for describing and making predictions about all sorts of biological systems. I'd be happy to answer any questions about my previous work or about what I presented today.
